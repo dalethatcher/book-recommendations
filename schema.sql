@@ -46,6 +46,13 @@ CREATE TABLE IF NOT EXISTS runs (
     output_file TEXT
 );
 
+CREATE TABLE IF NOT EXISTS blocklist (
+    id INTEGER PRIMARY KEY,
+    series TEXT NOT NULL UNIQUE,
+    reason TEXT DEFAULT '',
+    added_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_ratings_book ON ratings(book_id);
 CREATE INDEX IF NOT EXISTS idx_recs_book ON recommendations(book_id);
 CREATE INDEX IF NOT EXISTS idx_awards_book ON awards(book_id);

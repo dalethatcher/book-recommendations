@@ -14,6 +14,7 @@ Tables:
 - `ratings(book_id, rating 1-5 REAL, note, rated_at)`
 - `recommendations(book_id, recommended_at, run_id, reason, score, status)` — status: new/interested/queued/finished/declined. NEVER re-recommend a book that has status finished/declined, or appears in ratings.
 - `awards(book_id, award, year, result)` — award names: Hugo, Nebula, Clarke, Locus-SF, Locus-Fantasy, WorldFantasy, BritishFantasy, Mythopoeic
+- `blocklist(series UNIQUE, reason)` — series the user opted out of continuing; gen skips them
 - `runs(ran_at, mode, output_file)`
 
 Use a venv for ALL Python work here: `.venv/bin/python recommend.py ...`
@@ -33,6 +34,7 @@ Use a venv for ALL Python work here: `.venv/bin/python recommend.py ...`
 Content-based + taste-affinity scoring. Weights come from the user's own ratings only
 (single-user system; collaborative filtering is not applicable — see research notes below).
 - score = sum(genre weights) + 3×author weight + 2×(award wins) + 0.5×(award nominations)
+- Diversity cap: max 2 titles per author per digest (user request).
 - Cold start: under 10 ratings → calibration phase, digest says so explicitly.
 - One "stretch pick" per run outside the user's top genre (bandit-lite exploration) — keep this.
 

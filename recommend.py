@@ -191,6 +191,10 @@ def build_digest(con, n=8, name=""):
             "SELECT title FROM books WHERE source IN ('audible','goodreads','manual')"
         )
     } - {""}
+    # series blocklist (user opted out of continuing)
+    blocked_series = {
+        s.lower() for (s,) in con.execute("SELECT series FROM blocklist")
+    }
 
     calibrating = n_ratings < 10
     candidates = con.execute(
@@ -204,6 +208,8 @@ def build_digest(con, n=8, name=""):
     scored = []
     for c in candidates:
         if norm_title(c["title"]) in owned:
+            continue
+        if (c["series"] or "").strip().lower() in blocked_series:
             continue
         score, reasons = 0.0, []
         for g in (c["genres"] or "").split("|"):
@@ -229,6 +235,18 @@ def build_digest(con, n=8, name=""):
         scored.append((score, c, "; ".join(reasons[:2])))
 
     scored.sort(key=lambda x: -x[0])
+    # diversity cap: max 2 titles per author in any digest
+    MAX_PER_AUTHOR = 2
+    capped, per_author = [], {}
+    for item in scored:
+        a = (item[1]["author"] or "").strip()
+        if per_author.get(a, 0) >= MAX_PER_AUTHOR:
+            continue
+        per_author[a] = per_author.get(a, 0) + 1
+        capped.append(item)
+        if len(capped) >= n + 1:  # n-1 normal + 1 stretch candidate
+            break
+    scored = capped
     picks = scored[: n - 1]
     # bandit-lite exploration pick: random mid-tier pick outside your top genre
     top_genre = max(genre_w, key=genre_w.get) if genre_w else None
