@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+books.db
+books.db-wal
+books.db-shm
+audible_library.csv
+audible/
+awards_raw/*.wiki
+awards_raw/*.csv
+recommendations-*.md
